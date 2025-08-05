@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Classification</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f6f6;
+        }
+        h1, h4 {
+            color: #295e5e;
+        }
+        .btn-primary, .btn-success, .btn-danger {
+            background-color: #295e5e;
+            border-color: #295e5e;
+        }
+        .btn-primary:hover, .btn-success:hover, .btn-danger:hover {
+            background-color: #3b7d7d;
+            border-color: #3b7d7d;
+        }
+        .navbar {
+            background-color: #295e5e;
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .nav-link:hover {
+            color: #d4d4d4 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/home">Text Classification</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/index">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/index">Prediction</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/index"></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <h1 class="text-center mb-4">Suggestions and Recommendation</h1>
+        {% if session.get('user') %}
+        <div class="text-end">
+            <span>Welcome, {{ session.get('user') }}</span>
+            <a href="/logout" class="btn btn-sm btn-danger">Logout</a>
+        </div>
+        {% endif %}
+
+        <!-- Text Input Form -->
+        <div class="card p-4 shadow mb-4">
+            <h4 class="mb-3">Enter Text for Prediction</h4>
+            <form action="/predict" method="post">
+                <div class="mb-3">
+                    <label for="sentence" class="form-label">Enter a Sentence:</label>
+                    <textarea class="form-control" id="sentence" name="sentence" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Predict</button>
+            </form>
+        </div>
+
+        <!-- Speech Input Section -->
+        <div class="card p-4 shadow">
+            <h4 class="mb-3">Speech Input for Prediction</h4>
+            <div class="d-flex justify-content-center gap-3">
+                <button class="btn btn-success" id="start-recording">Start Recording</button>
+                <button class="btn btn-danger" id="stop-recording">Stop Recording</button>
+            </div>
+            <div id="transcription" class="alert alert-secondary mt-3 text-center d-none">
+                <p id="transcription-text"></p>
+                <form action="/predict" method="post">
+                    <input type="hidden" id="speech-input" name="sentence">
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Predict</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Prediction and Suggestions -->
+        {% if prediction %}
+        <div class="alert alert-info mt-4 text-center" role="alert">
+            <h4>{{ prediction }}</h4>
+        </div>
+
+        <div class="card p-4 shadow mt-4">
+            <ul style="font-size: 1.2em; line-height: 1.8;">
+                {% if prediction == "depression" %}
+                    <li><a href="https://www.betterhelp.com/" target="_blank"><strong>Schedule a therapy session with BetterHelp</strong></a>.</li>
+                    <li><a href="https://www.nimh.nih.gov/health/topics/relaxation-techniques" target="_blank"><strong>Practice relaxation techniques</strong></a>.</li>
+                    <li><a href="https://www.youtube.com/user/yogawithadriene" target="_blank"><strong>Try yoga with Adriene for mindfulness and relaxation</strong></a>.</li>
+                {% elif prediction == "suicide" %}
+                    <li><a href="https://988lifeline.org/" target="_blank"><strong>Contact the National Suicide Prevention Lifeline</strong></a> or call 988 for immediate support.</li>
+                    <li><a href="https://www.opencounseling.com/suicide-hotlines" target="_blank"><strong>Find a crisis hotline in your area</strong></a>.</li>
+                    <li><a href="https://www.mentalhealth.org.uk/publications/talking-mental-health" target="_blank"><strong>Talk to someone you trust about your feelings</strong></a>.</li>
+                {% elif prediction|lower == "non-suicide" %}
+                    <li><a href="https://www.healthline.com/nutrition/50-super-healthy-foods" target="_blank"><strong>Maintain a healthy routine with these tips</strong></a>.</li>
+                    <li><a href="https://www.headspace.com/" target="_blank"><strong>Practice daily mindfulness with the Headspace app</strong></a>.</li>
+                    <li><a href="https://hobbyhelp.com/" target="_blank"><strong>Explore hobbies to bring joy and relaxation</strong></a>.</li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        let recognition;
+        const transcriptionText = document.getElementById('transcription-text');
+        const transcriptionDiv = document.getElementById('transcription');
+        const speechInput = document.getElementById('speech-input');
+
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = function(event) {
+                const speechResult = event.results[0][0].transcript;
+                transcriptionText.innerText = speechResult;
+                speechInput.value = speechResult;
+                transcriptionDiv.classList.remove('d-none');
+            };
+
+            recognition.onerror = function(event) {
+                alert('Error occurred during speech recognition: ' + event.error);
+            };
+        } else {
+            alert('Speech recognition is not supported in this browser.');
+        }
+
+        // Start Recording
+        document.getElementById('start-recording').addEventListener('click', () => {
+            transcriptionDiv.classList.add('d-none');
+            transcriptionText.innerText = '';
+            speechInput.value = '';
+            recognition.start();
+        });
+
+        // Stop Recording
+        document.getElementById('stop-recording').addEventListener('click', () => {
+            recognition.stop();
+        });
+    </script>
+</body>
+
+</html>

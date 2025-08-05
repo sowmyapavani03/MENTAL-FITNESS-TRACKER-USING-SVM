@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Classification</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center text-primary mb-4">Text Classification Using Random Forest</h1>
+        {% if session.get('user') %}
+        <div class="text-end">
+            <span>Welcome, {{ session.get('user') }}</span>
+            <a href="/logout" class="btn btn-sm btn-danger">Logout</a>
+        </div>
+        {% endif %}
+
+        <!-- Text Input Form -->
+        <div class="card p-4 shadow mb-4">
+            <h4 class="text-primary mb-3">Enter Text for Prediction</h4>
+            <form action="/predict" method="post">
+                <div class="mb-3">
+                    <label for="sentence" class="form-label">Enter a Sentence:</label>
+                    <textarea class="form-control" id="sentence" name="sentence" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Predict</button>
+            </form>
+        </div>
+
+        <!-- Speech Input Section -->
+        <div class="card p-4 shadow">
+            <h4 class="text-primary mb-3">Speech Input for Prediction</h4>
+            <div class="d-flex justify-content-center gap-3">
+                <button class="btn btn-success" id="start-recording">Start Recording</button>
+                <button class="btn btn-danger" id="stop-recording">Stop Recording</button>
+            </div>
+            <div id="transcription" class="alert alert-secondary mt-3 text-center d-none">
+                <p id="transcription-text"></p>
+                <form action="/predict" method="post">
+                    <input type="hidden" id="speech-input" name="sentence">
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Predict</button>
+                </form>
+            </div>
+        </div>
+
+        {% if prediction %}
+        <div class="alert alert-info mt-4 text-center" role="alert">
+            {{ prediction }}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        let recognition;
+        const transcriptionText = document.getElementById('transcription-text');
+        const transcriptionDiv = document.getElementById('transcription');
+        const speechInput = document.getElementById('speech-input');
+
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = function(event) {
+                const speechResult = event.results[0][0].transcript;
+                transcriptionText.innerText = speechResult;
+                speechInput.value = speechResult;
+                transcriptionDiv.classList.remove('d-none');
+            };
+
+            recognition.onerror = function(event) {
+                alert('Error occurred during speech recognition: ' + event.error);
+            };
+        } else {
+            alert('Speech recognition is not supported in this browser.');
+        }
+
+        // Start Recording
+        document.getElementById('start-recording').addEventListener('click', () => {
+            transcriptionDiv.classList.add('d-none');
+            transcriptionText.innerText = '';
+            speechInput.value = '';
+            recognition.start();
+        });
+
+        // Stop Recording
+        document.getElementById('stop-recording').addEventListener('click', () => {
+            recognition.stop();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f6f6;
+        }
+        h2 {
+            color: #295e5e;
+        }
+        .btn-primary {
+            background-color: #295e5e;
+            border-color: #295e5e;
+        }
+        .btn-primary:hover {
+            background-color: #3b7d7d;
+            border-color: #3b7d7d;
+        }
+        .card {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h2 class="text-center mb-4">Sign Up</h2>
+        <form action="/signup" method="post" class="card p-4 shadow">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+        </form>
+        <div class="text-center mt-3">
+            <p>Already have an account? <a href="/login">Log In</a></p>
+        </div>
+    </div>
+</body>
+</html>
